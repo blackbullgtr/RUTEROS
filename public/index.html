@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruteros Ñuble</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* === VARIABLES DE COLOR === */
+        :root {
+            --bg-color: #414141;
+            --bg-gradient: radial-gradient(circle, #2a2a2a 0%, #000000 100%);
+            --text-main: #ffffff;
+            --red-accent: #e60000;
+            --red-hover: #b30000;
+        }
+
+        /* === RESET Y ESTILOS GENERALES === */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg-color);
+            background-image: var(--bg-gradient);
+            color: var(--text-main);
+            font-family: 'Montserrat', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* === NAVEGACIÓN === */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 5%;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo-text {
+            font-family: 'Oswald', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        nav ul li a {
+            color: var(--text-main);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            transition: color 0.3s ease;
+        }
+
+        nav ul li a:hover {
+            color: var(--red-accent);
+        }
+
+        /* === SECCIÓN HERO (PRINCIPAL) === */
+        .hero {
+            display: flex;
+            flex: 1;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 5%;
+            gap: 4rem;
+            flex-wrap: wrap;
+        }
+
+        /* === TÓMBOLA DE MOTOS (IZQUIERDA) === */
+        .carousel-container {
+            flex: 1;
+            min-width: 300px;
+            max-width: 600px;
+            height: 400px;
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+        }
+
+        .carousel-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Asegura que la foto llene el espacio sin deformarse */
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+
+        .carousel-img.active {
+            opacity: 1;
+        }
+
+        /* === CONTENIDO (DERECHA) === */
+        .hero-content {
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 2rem;
+        }
+
+        .main-logo {
+            width: 100%;
+            max-width: 350px;
+            height: auto;
+            filter: drop-shadow(0px 10px 15px rgba(0,0,0,0.5));
+        }
+
+        .buttons {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn-red {
+            background-color: var(--red-accent);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(230, 0, 0, 0.4);
+        }
+
+        .btn-red:hover {
+            background-color: var(--red-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(230, 0, 0, 0.6);
+        }
+        
+        .btn-red:active {
+            transform: translateY(1px);
+        }
+
+        /* === RESPONSIVE === */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .hero {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-text">RUTEROS ÑUBLE</div>
+        <nav>
+            <ul>
+                <li><a href="https://www.instagram.com/ruteros_2022/">INSTAGRAM</a></li>
+                <li><a href="#">RUTAS</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="hero">
+        <div class="carousel-container" id="carousel">
+            <img src="./integrantes/1.jpeg" class="carousel-img active" alt="Moto Integrante 1">
+            <img src="./integrantes/2.jpeg" class="carousel-img" alt="Moto Integrante 2">
+            <img src="./integrantes/3.jpeg" class="carousel-img" alt="Moto Integrante 3">
+            <img src="./integrantes/4.jpeg" class="carousel-img" alt="Moto Integrante 4">
+            <img src="./integrantes/5.jpeg" class="carousel-img" alt="Moto Integrante 4">
+            <img src="./integrantes/6.jpeg" class="carousel-img" alt="Moto Integrante 4">
+            <img src="./integrantes/7.jpeg" class="carousel-img" alt="Moto Integrante 4">
+            <img src="./integrantes/8.jpeg" class="carousel-img" alt="Moto Integrante 4">
+        
+        </div>
+        </div>
+
+        <div class="hero-content">
+            <img src="./img/ruteros.jpeg" alt="Logo Ruteros Ñuble" class="main-logo">
+            
+            <div class="buttons">
+                <a href="crear.html" class="btn-red" style="text-decoration: none;">Crear Ruta</a>
+                <a href="unirse.html" class="btn-red" style="text-decoration: none;">Unirse a Ruta</a>
+               
+            </div>
+        </div>
+    </main>
+
+    <script>
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const images = document.querySelectorAll('.carousel-img');
+            
+            // 1. Elegir un índice aleatorio inicial
+            let currentIndex = Math.floor(Math.random() * images.length);
+
+            // 2. Limpiar la clase 'active' de todas y asignarla solo a la elegida al azar
+            images.forEach(img => img.classList.remove('active'));
+            images[currentIndex].classList.add('active');
+
+            // 3. Iniciar la tómbola
+            setInterval(() => {
+                // Quitar clase active a la imagen actual
+                images[currentIndex].classList.remove('active');
+                
+                let nextIndex;
+                // Elegir una nueva foto al azar, asegurándonos de que no sea la misma de recién
+                do {
+                    nextIndex = Math.floor(Math.random() * images.length);
+                } while (nextIndex === currentIndex && images.length > 1); 
+                
+                currentIndex = nextIndex;
+                
+                // Agregar clase active a la nueva imagen
+                images[currentIndex].classList.add('active');
+            }, 3500); // Cambia de foto cada 3.5 segundos
+        });
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unirse a Ruta - Ruteros Ñuble</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+
+    <style>
+        :root {
+            --bg-color: #121212;
+            --bg-darker: #0a0a0a;
+            --bg-card: #1e1e1e;
+            --text-main: #ffffff;
+            --text-muted: #aaaaaa;
+            --red-accent: #e60000;
+            --red-hover: #b30000;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Montserrat', sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; 
+        }
+
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0.5rem 5%; background-color: var(--bg-darker);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1); height: 70px;
+        }
+
+        .logo-text {
+            font-family: 'Oswald', sans-serif; font-size: 1.2rem; font-weight: 700;
+            letter-spacing: 1px; text-transform: uppercase; text-decoration: none;
+            color: var(--text-main); transition: color 0.3s;
+        }
+        .logo-text:hover { color: var(--red-accent); }
+        .header-logo { height: 50px; width: 50px; border-radius: 50%; object-fit: cover; }
+
+        .header-right { display: flex; align-items: center; gap: 12px; }
+
+        .btn-gear {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.2);
+            color: var(--text-muted);
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.1rem;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+        }
+        .btn-gear:hover { border-color: var(--red-accent); color: var(--red-accent); }
+        .btn-gear.activo { background: var(--red-accent); color: white; border-color: var(--red-accent); }
+
+        .btn-delete-ruta {
+            background: transparent;
+            border: 1px solid var(--red-accent);
+            color: var(--red-accent);
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            display: none;
+            transition: all 0.2s;
+        }
+        .btn-delete-ruta:hover { background: var(--red-accent); color: white; }
+        .modo-admin .btn-delete-ruta { display: block; }
+
+        .route-fecha {
+            font-size: 0.75rem;
+            color: var(--red-accent);
+            margin-top: 2px;
+            font-weight: 600;
+        }
+
+        .empty-state { color: var(--text-muted); font-size: 0.9rem; padding: 1rem 0; }
+
+        .main-container { display: flex; flex: 1; height: calc(100vh - 70px); }
+
+        /* PANEL IZQUIERDO (LISTA DE RUTAS) */
+        .list-panel {
+            flex: 0 0 35%; padding: 1.5rem; background: var(--bg-color);
+            overflow-y: auto; border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .list-panel h1 {
+            font-family: 'Oswald', sans-serif; font-size: 1.8rem;
+            margin-bottom: 1.5rem; color: var(--text-main); text-transform: uppercase;
+        }
+
+        /* TARJETAS DE RUTA (ACORDEÓN) */
+        .route-card {
+            background-color: var(--bg-card);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            transition: border-color 0.3s;
+        }
+
+        .route-card.active { border-color: var(--red-accent); }
+
+        .route-header {
+            padding: 1rem;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            transition: background 0.2s;
+        }
+        .route-header:hover { background-color: rgba(255,255,255,0.02); }
+
+        .route-title {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            color: var(--text-main);
+        }
+
+        .route-author {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* DETALLES DESPLEGABLES */
+        .route-details {
+            padding: 0 1rem 1rem 1rem;
+            display: none; /* Oculto por defecto */
+            border-top: 1px solid rgba(255,255,255,0.05);
+            margin-top: 0.5rem;
+            padding-top: 1rem;
+        }
+
+        .info-row { margin-bottom: 0.5rem; font-size: 0.85rem; color: #ddd; }
+        .info-row strong { color: var(--red-accent); }
+
+        /* FORMULARIO PARA UNIRSE */
+        .join-box {
+            background: rgba(0,0,0,0.2);
+            padding: 1rem;
+            border-radius: 5px;
+            margin-top: 1rem;
+            display: none; /* Se muestra al darle al primer botón unirme */
+        }
+
+        .form-input {
+            width: 100%; padding: 10px; margin-bottom: 8px;
+            background: #111; border: 1px solid rgba(255,255,255,0.2);
+            color: white; border-radius: 4px; font-family: 'Montserrat', sans-serif;
+            font-size: 0.85rem; outline: none;
+        }
+        .form-input:focus { border-color: var(--red-accent); }
+
+        .btn-action {
+            background-color: var(--red-accent); color: white; border: none; padding: 10px;
+            font-family: 'Oswald', sans-serif; font-size: 1rem; text-transform: uppercase;
+            border-radius: 4px; cursor: pointer; width: 100%; transition: 0.3s;
+        }
+        .btn-action:hover { background-color: var(--red-hover); }
+        
+        .btn-outline {
+            background: transparent; border: 1px solid var(--red-accent); color: var(--red-accent);
+            margin-top: 1rem;
+        }
+        .btn-outline:hover { background: var(--red-accent); color: white; }
+
+        /* PANEL DERECHO (MAPA) */
+        .map-panel { flex: 1; position: relative; }
+        #map { width: 100%; height: 100%; z-index: 1; }
+        .leaflet-tile { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
+        .leaflet-routing-container { display: none !important; }
+
+        @media (max-width: 900px) {
+            body { overflow-y: auto; height: auto; }
+            .main-container { flex-direction: column; height: auto; }
+            .list-panel { flex: none; width: 100%; border-right: none; }
+            .map-panel { flex: none; width: 100%; height: 50vh; min-height: 400px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="index.html" class="logo-text">← Volver al Inicio</a>
+        <div class="header-right">
+            <button type="button" class="btn-gear" id="btnGear" onclick="toggleModoAdmin()" title="Administrar rutas">⚙</button>
+            <img src="./img/ruteros.jpeg" alt="Logo Ruteros Ñuble" class="header-logo">
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="list-panel">
+            <h1>Rutas Disponibles</h1>
+            <div id="rutas-container">
+                </div>
+        </div>
+
+        <div class="map-panel">
+            <div id="map"></div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+
+    <script>
+        let map;
+        let routingControl = null;
+        let rutasDB = [];
+        let modoAdmin = false;
+        let adminPassword = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Iniciar el mapa
+            map = L.map('map').setView([-36.6066, -72.1034], 9);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            // 2. Cargar la lista de rutas reales desde el servidor
+            cargarRutas();
+        });
+
+        async function cargarRutas() {
+            const container = document.getElementById('rutas-container');
+            try {
+                const response = await fetch('/api/rutas');
+                rutasDB = await response.json();
+                renderizarRutas();
+            } catch (error) {
+                container.innerHTML = '<p class="empty-state">No se pudieron cargar las rutas. Intenta recargar la página.</p>';
+            }
+        }
+
+        function formatearFecha(fechaISO) {
+            const [anio, mes, dia] = fechaISO.split('-');
+            return `${dia}-${mes}-${anio}`;
+        }
+
+        function renderizarRutas() {
+            const container = document.getElementById('rutas-container');
+            container.innerHTML = '';
+
+            if (rutasDB.length === 0) {
+                container.innerHTML = '<p class="empty-state">No hay rutas programadas por el momento. ¡Crea una!</p>';
+                return;
+            }
+
+            rutasDB.forEach(ruta => {
+                const card = document.createElement('div');
+                card.className = 'route-card';
+                card.id = `card-${ruta.id}`;
+
+                const paradasTexto = ruta.paradas && ruta.paradas.length > 0
+                    ? ruta.paradas.join(' → ')
+                    : null;
+
+                card.innerHTML = `
+                    <div class="route-header" onclick="toggleDetalles(${ruta.id})">
+                        <div class="route-title">${ruta.nombre_ruta}</div>
+                        <div class="route-author">Ruta creada por: ${ruta.nombre_piloto}</div>
+                        <div class="route-fecha">📅 ${formatearFecha(ruta.fecha)}</div>
+                    </div>
+                    
+                    <div class="route-details" id="details-${ruta.id}">
+                        <div class="info-row"><strong>Inicio:</strong> ${ruta.inicio}</div>
+                        ${paradasTexto ? `<div class="info-row"><strong>Paradas:</strong> ${paradasTexto}</div>` : ''}
+                        <div class="info-row"><strong>Destino:</strong> ${ruta.destino}</div>
+                        <div class="info-row"><strong>Fecha:</strong> ${formatearFecha(ruta.fecha)}</div>
+                        ${ruta.comentarios ? `<div class="info-row"><strong>Comentarios:</strong> ${ruta.comentarios}</div>` : ''}
+                        <div class="info-row"><strong>Asistentes:</strong> ${ruta.asistentes.length}</div>
+                        
+                        <button class="btn-action btn-outline" id="btn-show-join-${ruta.id}" onclick="mostrarFormularioUnirse(event, ${ruta.id})">Unirme a esta ruta</button>
+                        
+                        <div class="join-box" id="join-box-${ruta.id}">
+                            <input type="text" class="form-input" id="nombre-${ruta.id}" placeholder="Tu Nombre">
+                            <input type="text" class="form-input" id="moto-${ruta.id}" placeholder="Modelo de moto (Ej: Yamaha Tracer 9, Kawasaki Z400)">
+                            <button class="btn-action" onclick="confirmarAsistencia(event, ${ruta.id})">Confirmar Asistencia</button>
+                        </div>
+
+                        <button class="btn-delete-ruta" onclick="eliminarRuta(event, ${ruta.id})">🗑 Eliminar esta ruta</button>
+                    </div>
+                `;
+                if (modoAdmin) card.classList.add('modo-admin');
+                container.appendChild(card);
+            });
+        }
+
+        function toggleModoAdmin() {
+            if (!modoAdmin) {
+                const pass = prompt("Ingresa la contraseña de administrador para poder eliminar rutas:");
+                if (pass === null) return;
+                adminPassword = pass;
+                modoAdmin = true;
+            } else {
+                modoAdmin = false;
+                adminPassword = null;
+            }
+            document.getElementById('btnGear').classList.toggle('activo', modoAdmin);
+            renderizarRutas();
+        }
+
+        async function eliminarRuta(event, id) {
+            event.stopPropagation();
+            if (!confirm("¿Seguro que quieres eliminar esta ruta? Esta acción no se puede deshacer.")) return;
+
+            try {
+                const response = await fetch(`/api/rutas/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'x-admin-password': adminPassword }
+                });
+
+                if (response.status === 401) {
+                    alert("Contraseña incorrecta. No se pudo eliminar la ruta.");
+                    return;
+                }
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.error || 'No se pudo eliminar la ruta.');
+                }
+
+                rutasDB = rutasDB.filter(r => r.id !== id);
+                renderizarRutas();
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
+        async function toggleDetalles(id) {
+            const ruta = rutasDB.find(r => r.id === id);
+            if (!ruta) return;
+
+            // Cerrar todas las demás tarjetas
+            document.querySelectorAll('.route-details').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.route-card').forEach(el => el.classList.remove('active'));
+
+            // Abrir la seleccionada
+            const detailsDiv = document.getElementById(`details-${id}`);
+            const cardDiv = document.getElementById(`card-${id}`);
+            
+            detailsDiv.style.display = 'block';
+            cardDiv.classList.add('active');
+
+            // Dibujar la ruta en el mapa (incluyendo paradas intermedias)
+            dibujarEnMapa(ruta.inicio, ruta.paradas || [], ruta.destino);
+        }
+
+        async function obtenerCoordenadas(direccion) {
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(direccion)}`);
+                const data = await response.json();
+                if (data && data.length > 0) {
+                    return L.latLng(data[0].lat, data[0].lon);
+                }
+                return null;
+            } catch (error) {
+                return null;
+            }
+        }
+
+        async function dibujarEnMapa(inicioText, paradasText, destinoText) {
+            const listaDirecciones = [inicioText, ...paradasText, destinoText];
+            const promesas = listaDirecciones.map(dir => obtenerCoordenadas(dir));
+            const waypoints = await Promise.all(promesas);
+
+            if (waypoints.some(coord => coord === null)) {
+                console.warn("No se pudieron cargar todas las coordenadas para el mapa.");
+                return;
+            }
+
+            if (routingControl) {
+                map.removeControl(routingControl);
+            }
+
+            routingControl = L.Routing.control({
+                waypoints: waypoints,
+                lineOptions: { styles: [{ color: '#e60000', weight: 4 }] },
+                createMarker: function(i, wp, nWps) { return L.marker(wp.latLng); },
+                fitSelectedRoutes: true,
+                show: false
+            }).addTo(map);
+        }
+
+        function mostrarFormularioUnirse(event, id) {
+            event.stopPropagation();
+            document.getElementById(`btn-show-join-${id}`).style.display = 'none';
+            document.getElementById(`join-box-${id}`).style.display = 'block';
+        }
+
+        async function confirmarAsistencia(event, id) {
+            event.stopPropagation();
+            const nombre = document.getElementById(`nombre-${id}`).value.trim();
+            const moto = document.getElementById(`moto-${id}`).value.trim();
+
+            if (nombre === "" || moto === "") {
+                alert("Por favor, ingresa tu nombre y modelo de moto.");
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/rutas/${id}/asistentes`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nombre, moto })
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'No se pudo confirmar la asistencia.');
+
+                alert(`¡Excelente ${nombre}! Estás inscrito en la ruta con tu ${moto}.`);
+
+                document.getElementById(`join-box-${id}`).style.display = 'none';
+                document.getElementById(`btn-show-join-${id}`).style.display = 'block';
+                document.getElementById(`nombre-${id}`).value = '';
+                document.getElementById(`moto-${id}`).value = '';
+
+                // Refrescar el conteo de asistentes en memoria
+                const ruta = rutasDB.find(r => r.id === id);
+                if (ruta) ruta.asistentes.push({ nombre, moto });
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+    </script>
+</body>
+</html>
