@@ -14,6 +14,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ---------- Base de datos ---------
+// ---------- Base de datos ---------
 const db = createClient({
   url: process.env.TURSO_DATABASE_URL || 'file:ruteros.db',
   authToken: process.env.TURSO_AUTH_TOKEN
@@ -46,11 +47,29 @@ async function initDb() {
       );
     `);
     console.log('[BD] Tablas verificadas correctamente en Turso.');
+    
+    // Ejecutar la primera limpieza RECIÉN DESPUÉS de asegurar la existencia de las tablas
+    await limpiarRutasVencidas();
   } catch (err) {
     console.error('[BD] Error inicializando tablas:', err);
   }
 }
+
+// ---------- Limpieza automática de rutas vencidas ----------
+async function limpiarRutasVencidas() {
+  try {
+    const info = await db.execute(`DELETE FROM rutas WHERE date(fecha) < date('now','localtime')`);
+    if (info.rowsAffected > 0) {
+      console.log(`[limpieza] ${info.rowsAffected} ruta(s) vencida(s) eliminada(s).`);
+    }
+  } catch (err) {
+    console.error('[limpieza] Error al limpiar rutas:', err);
+  }
+}
+
+// Iniciar base de datos
 initDb();
+setInterval(limpiarRutasVencidas, 60 * 60 * 1000); // cada 1 hora
 
 // ---------- Limpieza automática de rutas vencidas ----------
 async function limpiarRutasVencidas() {
